@@ -66,26 +66,13 @@ public class CourseService {
                 .map(recordFound -> {
                     recordFound.setName(courseDTO.name());
                     recordFound.setCategory(courseMapper.convertCategoryValue(courseDTO.category()));
-
                     /*
                      * Trabalhar com as lessons
-                     */
-                    /* Remover lessons ausentes */
-                    List<Lesson> lessonsToRemove = new ArrayList<Lesson>();
-                    for (Lesson lesson : recordFound.getLessons()) {
-                        Boolean encontrado = false;
-                        for (LessonDTO lessonDTO : courseDTO.lessons())
-                            if (lesson.getId() == lessonDTO.id())
-                                encontrado = true;
-                        if (encontrado == false)
-                            lessonsToRemove.add(lesson);
-                        encontrado = false;
-                    }
-                    recordFound.getLessons().removeAll(lessonsToRemove);
+                     */                    
                     /* Atualizar lessons existentes */
                     for (LessonDTO lessonDTO : courseDTO.lessons())
                         for (Lesson lesson : recordFound.getLessons())
-                            if (lesson.getId() == lessonDTO.id()) {
+                            if (lesson.getId().equals(lessonDTO.id())) {
                                 lesson.setName(lessonDTO.name());
                                 lesson.setYoutubeUrl(lessonDTO.youtubeUrl());
                             }
@@ -97,7 +84,18 @@ public class CourseService {
                             lessonRepository.save(lessonDTOtoEntity);
                             recordFound.getLessons().add(lessonDTOtoEntity);
                         }
-
+                    /* Remover lessons ausentes */
+                    List<Lesson> lessonsToRemove = new ArrayList<Lesson>();
+                    for (Lesson lesson : recordFound.getLessons()) {
+                        Boolean encontrado = false;
+                        for (LessonDTO lessonDTO : courseDTO.lessons())
+                            if (lesson.getId().equals(lessonDTO.id()) && lessonDTO.id() != null)
+                                encontrado = true; 
+                        if (encontrado == false)
+                            lessonsToRemove.add(lesson);                        
+                        encontrado = false;
+                    }
+                    recordFound.getLessons().removeAll(lessonsToRemove);
                     return courseMapper.toDTO(courseRepository.save(recordFound));
                 }).orElseThrow(() -> new RecordNotFoundException(id));
     }
